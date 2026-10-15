@@ -1,0 +1,17 @@
+{
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": [
+            "app/Modules/Inventory/Domain",
+            "app/Modules/Inventory/Application"
+        ]
+    },
+    "testFramework": "pest",
+    "testFrameworkOptions": "--testsuite=Unit",
+    "logs": {
+        "text": "build/infection.log",
+        "summary": "build/infection-summary.log"
+    },
+    "minMsi": 70,
+    "minCoveredMsi": 80
+}

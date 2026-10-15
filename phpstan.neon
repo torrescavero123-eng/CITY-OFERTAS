@@ -1,0 +1,9 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    # Nivel actual: 6. Meta del plan: 8 (se sube módulo por módulo desde la Parte 2).
+    level: 6
+    paths:
+        - app
+    tmpDir: build/phpstan

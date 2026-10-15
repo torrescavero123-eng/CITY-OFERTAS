@@ -1,0 +1,63 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: wms_owner
+          POSTGRES_PASSWORD: wms_owner_dev
+          POSTGRES_DB: wms_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U wms_owner" --health-interval=10s --health-timeout=5s --health-retries=5
+    env:
+      DB_HOST: 127.0.0.1
+      DB_DATABASE: wms_test
+      DB_USERNAME: wms_owner
+      DB_PASSWORD: wms_owner_dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, bcmath, intl, pcntl
+          coverage: pcov
+      - name: Instalar dependencias
+        run: composer install --prefer-dist --no-progress
+      - run: cp -n .env.example .env && php artisan key:generate
+      - name: Estilo (Pint)
+        run: vendor/bin/pint --test
+      - name: Análisis estático (PHPStan/Larastan)
+        run: vendor/bin/phpstan analyse --memory-limit=1G
+      - name: Capas (Deptrac)
+        run: vendor/bin/deptrac analyse
+      - name: Vulnerabilidades en dependencias
+        run: composer audit
+      - name: Pruebas con cobertura mínima 80 %
+        run: vendor/bin/pest --coverage --min=80
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+  mutation:
+    # Pesado: solo en main y de noche, no en cada PR.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: "8.4", extensions: "bcmath, pcntl", coverage: pcov }
+      - run: composer install --prefer-dist --no-progress
+      - run: vendor/bin/infection --threads=4 --only-covered --min-msi=70
