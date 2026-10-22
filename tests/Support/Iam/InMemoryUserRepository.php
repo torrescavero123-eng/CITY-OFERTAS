@@ -52,7 +52,7 @@ final class InMemoryUserRepository implements UserRepository
     {
         $r = $this->rows[$id] ?? null;
 
-        return $r === null ? null : new UserRecord($id, $r['username'], $r['active'], $r['role'] === RoleName::Admin);
+        return $r === null ? null : new UserRecord($id, $r['username'], $r['active'], $r['role'] === RoleName::Admin, $r['email']);
     }
 
     public function countActiveAdmins(): int
@@ -63,6 +63,11 @@ final class InMemoryUserRepository implements UserRepository
     public function setActive(int $id, bool $active): void
     {
         $this->rows[$id]['active'] = $active;
+    }
+
+    public function setPasswordHash(int $id, string $passwordHash): void
+    {
+        $this->rows[$id]['hash'] = $passwordHash;
     }
 
     public function lockoutState(int $id): LockoutState

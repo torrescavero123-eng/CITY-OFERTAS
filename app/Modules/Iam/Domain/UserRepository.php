@@ -19,6 +19,8 @@ interface UserRepository
 
     public function setActive(int $id, bool $active): void;
 
+    public function setPasswordHash(int $id, string $passwordHash): void;
+
     public function lockoutState(int $id): LockoutState;
 
     public function saveLockoutState(int $id, LockoutState $state): void;

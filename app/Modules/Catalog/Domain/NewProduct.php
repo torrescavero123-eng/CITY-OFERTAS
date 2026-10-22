@@ -116,7 +116,7 @@ final readonly class NewProduct
             return [];
         }
 
-        $units = array_map(static fn(PresentationInput $p): int => $p->unitId, $presentations);
+        $units = array_map(static fn (PresentationInput $p): int => $p->unitId, $presentations);
         $seen = [];
         $primaries = 0;
 

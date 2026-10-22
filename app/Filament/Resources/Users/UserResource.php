@@ -10,6 +10,7 @@ use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Models\User;
 use App\Modules\Iam\Application\ActivateUser;
 use App\Modules\Iam\Application\DeactivateUser;
+use App\Modules\Iam\Application\ResetUserPassword;
 use App\Modules\Iam\Domain\IamException;
 use App\Modules\Iam\Domain\RoleName;
 use BackedEnum;
@@ -97,6 +98,19 @@ class UserResource extends Resource
                     ->action(static fn (User $record) => self::run(
                         static fn () => app(ActivateUser::class)((int) $record->getKey(), (int) auth()->id()),
                         'Usuario reactivado',
+                    )),
+                Action::make('resetPassword')->label('Restablecer contraseña')->icon('heroicon-o-key')->color('warning')
+                    ->modalHeading('Restablecer contraseña')
+                    ->modalDescription('Fije una contraseña temporal y entréguela en persona. También desbloquea la cuenta. Pídale que la cambie desde su perfil.')
+                    ->schema([
+                        TextInput::make('password')->label('Contraseña nueva')->password()->revealable()->required()->minLength(12)
+                            ->helperText('Mínimo 12 caracteres. No puede contener el usuario ni el correo.'),
+                        TextInput::make('password_confirmation')->label('Repita la contraseña')->password()->required()->same('password'),
+                    ])
+                    ->visible(static fn (User $record): bool => $record->getKey() !== auth()->id())
+                    ->action(static fn (array $data, User $record) => self::run(
+                        static fn () => app(ResetUserPassword::class)((int) $record->getKey(), (string) $data['password'], (int) auth()->id()),
+                        'Contraseña restablecida',
                     )),
             ])
             ->defaultSort('name');

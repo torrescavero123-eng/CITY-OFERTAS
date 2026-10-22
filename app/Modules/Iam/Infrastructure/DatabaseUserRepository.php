@@ -44,7 +44,7 @@ final class DatabaseUserRepository implements UserRepository
 
     public function find(int $id): ?UserRecord
     {
-        $row = DB::table('users')->where('id', $id)->whereNull('deleted_at')->first(['id', 'username', 'is_active']);
+        $row = DB::table('users')->where('id', $id)->whereNull('deleted_at')->first(['id', 'username', 'email', 'is_active']);
         if ($row === null) {
             return null;
         }
@@ -57,6 +57,7 @@ final class DatabaseUserRepository implements UserRepository
             (string) $row->username,
             filter_var($row->is_active, FILTER_VALIDATE_BOOLEAN),
             $model->hasRole(RoleName::Admin->value),
+            (string) $row->email,
         );
     }
 
@@ -78,6 +79,11 @@ final class DatabaseUserRepository implements UserRepository
     public function setActive(int $id, bool $active): void
     {
         DB::table('users')->where('id', $id)->update(['is_active' => $active, 'updated_at' => now()]);
+    }
+
+    public function setPasswordHash(int $id, string $passwordHash): void
+    {
+        DB::table('users')->where('id', $id)->update(['password' => $passwordHash, 'updated_at' => now()]);
     }
 
     public function lockoutState(int $id): LockoutState

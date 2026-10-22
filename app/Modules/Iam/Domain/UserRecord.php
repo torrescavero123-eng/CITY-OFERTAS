@@ -11,5 +11,6 @@ final readonly class UserRecord
         public string $username,
         public bool $isActive,
         public bool $isAdmin,
+        public string $email = '',
     ) {}
 }
